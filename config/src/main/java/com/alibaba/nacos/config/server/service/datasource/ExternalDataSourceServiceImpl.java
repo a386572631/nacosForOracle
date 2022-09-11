@@ -19,6 +19,7 @@ package com.alibaba.nacos.config.server.service.datasource;
 import com.alibaba.nacos.common.utils.ConvertUtils;
 import com.alibaba.nacos.common.utils.InternetAddressUtil;
 import com.alibaba.nacos.common.utils.StringUtils;
+import com.alibaba.nacos.config.server.constant.PropertiesConstant;
 import com.alibaba.nacos.config.server.monitor.MetricsMonitor;
 import com.alibaba.nacos.config.server.utils.ConfigExecutor;
 import com.alibaba.nacos.config.server.utils.PropertyUtil;
@@ -37,8 +38,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.alibaba.nacos.config.server.service.repository.RowMapperManager.CONFIG_INFO4BETA_ROW_MAPPER;
-import static com.alibaba.nacos.config.server.utils.LogUtil.DEFAULT_LOG;
-import static com.alibaba.nacos.config.server.utils.LogUtil.FATAL_LOG;
+import static com.alibaba.nacos.config.server.utils.LogUtil.*;
 
 /**
  * Base data source.
@@ -119,14 +119,27 @@ public class ExternalDataSourceServiceImpl implements DataSourceService {
     @Override
     public synchronized void reload() throws IOException {
         try {
-            dataSourceList = new ExternalDataSourceProperties()
-                    .build(EnvUtil.getEnvironment(), (dataSource) -> {
-                        JdbcTemplate jdbcTemplate = new JdbcTemplate();
-                        jdbcTemplate.setQueryTimeout(queryTimeout);
-                        jdbcTemplate.setDataSource(dataSource);
-                        testJtList.add(jdbcTemplate);
-                        isHealthList.add(Boolean.TRUE);
-                    });
+            final String db = new PropertyUtil().getProperty(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "");
+            if (PropertiesConstant.MYSQL.equalsIgnoreCase(db)) {
+                dataSourceList = new ExternalDataSourceProperties()
+                        .build(EnvUtil.getEnvironment(), (dataSource) -> {
+                            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+                            jdbcTemplate.setQueryTimeout(queryTimeout);
+                            jdbcTemplate.setDataSource(dataSource);
+                            testJtList.add(jdbcTemplate);
+                            isHealthList.add(Boolean.TRUE);
+                        });
+            } else if (PropertiesConstant.ORACLE.equalsIgnoreCase(db)) {
+                dataSourceList = new ExternalOracleDataSourceProperties()
+                        .build(EnvUtil.getEnvironment(), (dataSource) -> {
+                            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+                            jdbcTemplate.setQueryTimeout(queryTimeout);
+                            jdbcTemplate.setDataSource(dataSource);
+                            testJtList.add(jdbcTemplate);
+                            isHealthList.add(Boolean.TRUE);
+                        });
+            }
+
             new SelectMasterTask().run();
             new CheckDbHealthTask().run();
         } catch (RuntimeException e) {
@@ -134,7 +147,7 @@ public class ExternalDataSourceServiceImpl implements DataSourceService {
             throw new IOException(e);
         }
     }
-    
+
     @Override
     public boolean checkMasterWritable() {
         
@@ -142,7 +155,7 @@ public class ExternalDataSourceServiceImpl implements DataSourceService {
         // Prevent the login interface from being too long because the main library is not available
         testMasterWritableJT.setQueryTimeout(1);
         String sql = " SELECT @@read_only ";
-        
+
         try {
             Integer result = testMasterWritableJT.queryForObject(sql, Integer.class);
             if (result == null) {

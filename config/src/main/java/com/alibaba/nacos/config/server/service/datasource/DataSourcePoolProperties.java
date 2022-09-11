@@ -63,18 +63,22 @@ public class DataSourcePoolProperties {
     }
     
     public void setDriverClassName(final String driverClassName) {
+        System.out.println("------------------------------" + driverClassName);
         dataSource.setDriverClassName(driverClassName);
     }
     
     public void setJdbcUrl(final String jdbcUrl) {
+        System.out.println("------------------------------" + jdbcUrl);
         dataSource.setJdbcUrl(jdbcUrl);
     }
     
     public void setUsername(final String username) {
+        System.out.println("------------------------------" + username);
         dataSource.setUsername(username);
     }
     
     public void setPassword(final String password) {
+        System.out.println("------------------------------" + password);
         dataSource.setPassword(password);
     }
     
