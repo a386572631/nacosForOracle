@@ -16,6 +16,7 @@
 
 package com.alibaba.nacos.config.server.service.repository.extrnal;
 
+import com.alibaba.nacos.config.server.constant.PropertiesConstant;
 import com.alibaba.nacos.config.server.model.Page;
 import com.alibaba.nacos.config.server.service.repository.PaginationHelper;
 import com.alibaba.nacos.config.server.service.sql.EmbeddedStorageContextUtils;
@@ -25,6 +26,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * External Storage Pagination utils.
@@ -90,10 +92,14 @@ class ExternalStoragePaginationHelperImpl<E> implements PaginationHelper {
         String selectSql = "";
         if (isDerby()) {
             selectSql = sqlFetchRows + " OFFSET " + startRow + " ROWS FETCH NEXT " + pageSize + " ROWS ONLY";
-        } else if (lastMaxId != null) {
+        } else if (isMySQL() && Objects.nonNull(lastMaxId)) {
             selectSql = sqlFetchRows + " AND id > " + lastMaxId + " ORDER BY id ASC" + " LIMIT " + 0 + "," + pageSize;
-        } else {
+        } else if (isMySQL() && Objects.isNull(lastMaxId)) {
             selectSql = sqlFetchRows + " LIMIT " + startRow + "," + pageSize;
+        } else if (isOracle() && Objects.nonNull(lastMaxId)) {
+            // TODO oracle分页
+        } else if (isOracle() && Objects.isNull(lastMaxId)) {
+            // TODO oracle分页
         }
         
         List<E> result = jdbcTemplate.query(selectSql, args, rowMapper);
@@ -237,5 +243,12 @@ class ExternalStoragePaginationHelperImpl<E> implements PaginationHelper {
         return (EnvUtil.getStandaloneMode() && !PropertyUtil.isUseExternalDB()) || PropertyUtil
                 .isEmbeddedStorage();
     }
-    
+
+    private boolean isMySQL() {
+        return new PropertyUtil().getProperty(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "").equalsIgnoreCase("mysql");
+    }
+
+    private boolean isOracle() {
+        return new PropertyUtil().getProperty(PropertiesConstant.SPRING_DATASOURCE_PLATFORM, "").equalsIgnoreCase("oracle");
+    }
 }

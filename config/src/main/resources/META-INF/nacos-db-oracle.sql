@@ -35,7 +35,7 @@ CREATE TABLE config_info (
                              effect varchar2(64) default NULL,
                              type varchar2(64) default NULL,
                              c_schema clob,
-                             encrypted_data_key clob NOT NULL,
+                             encrypted_data_key clob NULL,
                              CONSTRAINT PK_CONFIG_INFO PRIMARY KEY (id),
                              UNIQUE (data_id,group_id,tenant_id)
 );
@@ -105,7 +105,7 @@ CREATE TABLE config_info_beta (
                                   src_user clob,
                                   src_ip varchar2(20) DEFAULT NULL,
                                   tenant_id varchar2(128) DEFAULT '',
-                                  encrypted_data_key clob NOT NULL,
+                                  encrypted_data_key clob NULL,
                                   CONSTRAINT PK_CONFIG_INFO_BETA PRIMARY KEY (id),
                                   UNIQUE(data_id,group_id,tenant_id)
 );
@@ -258,7 +258,7 @@ CREATE TABLE his_config_info (
                                  src_ip varchar2(20) DEFAULT NULL,
                                  op_type char(10) DEFAULT NULL,
                                  tenant_id varchar2(128) DEFAULT '',
-                                 encrypted_data_key clob NOT NULL,
+                                 encrypted_data_key clob NULL,
                                  CONSTRAINT PK_HIS_CONFIG_INFO PRIMARY KEY (nid)
 );
 create index idx_gmt_create on his_config_info (gmt_create);
