@@ -1,7 +1,7 @@
 
 <img src="doc/Nacos_Logo.png" width="50%" syt height="50%" />
 
-# Nacos 2.1.0: Support ORACLE 
+# Nacos 2.1.0: Support ORACLE TODO SQL
 
 -------
 
@@ -38,11 +38,5 @@ On the **Windows** platform, run the following command to start server with stan
 ```
 startup.cmd -m standalone
 ```
-
-## Documentation
-
-You can view the full documentation from the [Nacos website](https://nacos.io/en-us/docs/what-is-nacos.html).
-
-All the latest and long-term notice can also be found here from [Github notice issue](https://github.com/alibaba/nacos/labels/notice).
 
 
